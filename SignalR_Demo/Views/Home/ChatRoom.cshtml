@@ -1,0 +1,114 @@
+﻿@{
+    ViewBag.Title = "ChatRoom";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section header {
+    <link href="@Url.Content("~/Content/ChatRoom.css")" rel="stylesheet" type="text/css" />
+    <script src="@Url.Content("~/Scripts/knockout-2.0.0rc.js")" type="text/javascript"></script>
+    <script src="@Url.Content("~/Content/InteractiveStyles.js")" type="text/javascript"></script>
+
+    <script type="text/javascript">
+        var userName = '';
+        $(function () {
+            $('#btnLogin').click(function () {
+                userName = $('#txtLoginName').attr('value');
+                chatHub.subscribe(userName);
+                $('#loginContainer').animate({ opacity: 0 }, 300, function () {
+                    $('#splashScreen').slideUp();
+                });
+            });
+
+            $('#btnSendMessage').click(function () {
+                chatHub.sendMessage({ from: userName, message: $('#ChatBox').attr('value') });
+            });
+
+            var mockUsers = [{ username: 'Evan' }, { username: 'Danielle' }, { username: 'Jada' }, { username: 'Jack' }, { username: 'Dexter'}];
+            var mockChatMessage = [{ from: 'Evan', message: 'Hello Danielle' }, { from: 'Danielle', message: 'Hello Jack' }, { from: 'Jack', message: 'Meow..'}];
+
+            var viewModel = {
+                // data
+                users: ko.observableArray(mockUsers),
+                chatMessages: ko.observableArray(mockChatMessage),
+                chatMessage: ko.observable(''),
+            };
+
+            ko.applyBindings(viewModel);
+
+            var chatHub = $.connection.chatHub;
+
+            chatHub.addUser = function (user) {
+                if (userName != user.username) {
+                    viewModel.users.push(user);
+                }
+            };
+            chatHub.addUsers = function (users) {
+                // remove all the design time data
+                viewModel.users.removeAll();
+                viewModel.chatMessages.removeAll();
+                // bind users to ui
+                for (var i = 0; i < users.length; i++) {
+                    viewModel.users.push(users[i]);
+                }
+            };
+            chatHub.removeUser = function (user) {
+                viewModel.users.remove(function (p) {
+                    return user.username == p.username;
+                });
+                viewModel.chatMessages.push({ from: "SYSTEM MESSAGE", message: user.username + " has left the building!" });
+            };
+            chatHub.receiveMessage = function (message) {
+                viewModel.chatMessages.push(message);
+            };
+
+            $.connection.hub.start();
+        });
+    </script>
+}
+
+<div class="left col">
+    <div class="header row border">
+        <h1>Capital City .NET Users Group</h1>
+    </div>
+
+    <div class="body row scroll-y border">
+        <ul id="ChatLogContainer" data-bind="foreach: chatMessages">
+            <li>
+                <span class="from" data-bind="text: from"></span>
+                <span class="seperator">>></span>
+                <span class="message" data-bind="text: message"></span>
+            </li>
+        </ul>
+    </div>
+
+    <div class="footer row scroll-x border">
+        <input type="text" id="ChatBox" name="ChatBox" placeholder="Enter your comment here..." data-bind="value: chatMessage" />
+        <input type="button" id="btnSendMessage" value="Send" />
+    </div>
+</div>
+
+<div class="right col border scroll-y">
+    <a class="top left collapseButton">>></a>
+
+    <div id="userlist" class="col border" style="right: 0; left: 0;">
+        <span class="header">Users_Online</span>
+        <ul data-bind="foreach: users">
+            <li data-bind="text: username"></li>
+        </ul>
+    </div>
+</div>
+
+
+<div id="splashScreen">
+    <div id="loginContainer">
+        <table>
+            <tr>
+                <td>Login Name:</td>
+                <td><input type="text" name="LoginName" id="txtLoginName" placeholder="Please enter a user name..." /></td>
+            </tr>
+            <tr>
+                <td colspan="2" style="text-align: right;"><input type="button" id="btnLogin" value="Login!" /></td>
+            </tr>
+        </table>
+    </div>
+</div>

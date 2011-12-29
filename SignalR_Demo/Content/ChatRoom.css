@@ -1,0 +1,56 @@
+﻿body { margin: 0 }
+    .row, .col { overflow: hidden; position: absolute; }
+    .row { left: 0; right: 0; }
+    .col { top: 0; bottom: 0; }
+    .scroll-x { overflow-x: auto; }
+    .scroll-y { overflow-y: auto; }
+    
+    .header.row { height: 75px; top: 0; line-height: 75px; } 
+    .body.row { top: 75px; bottom: 40px; }
+    .footer.row { height: 40px; bottom: 0; line-height: 40px; } 
+    
+    .left.col { left: 0; right: 250px; }
+    .right.col { right: 0; width: 250px;  }
+
+
+    /* Other helpfull css*/
+    .border { border: 1px solid black; }
+    .hidden { width: 0; height: 0; }
+    input[type='button'] { padding: 5px; }
+    
+    /*Right Column Elements*/
+    .top.left.collapseButton { top: 10px; left: 0; background-color: #e5fff3; font-weight: bold; font-size: 1.2em; position: relative; text-align: center; padding: 10px; color: Blue; }
+    .top.left.collapseButton:hover { background-color: Blue; color: #e5fff3; cursor: pointer; }
+    
+    #userlist { top: 40px; }
+    #userlist .header { display: block; padding: 5px 0 5px 5px; font-size: 1.4em; font-weight: bold; text-decoration: underline; position: static; color: Gray; }
+    #userlist ul { list-style-type: none; margin: 0; padding: 0; }
+    #userlist ul li { display: block; width: 100%; padding: 10px 0 10px 10px; background-color: #e5fff3; margin: 2px 0;  }
+    
+    /*Header*/
+    .header.row h1 { margin-left: 20px; color: Gray; }
+    
+    /*Splash screen*/
+    #splashScreen { position: absolute; left: 0; right: 0; top: 0; bottom: 0; background-color: #e5fff3; }
+    #loginContainer { top: 35%; left: 35%; border: 3px dotted white; background-color: White; position: absolute; padding: 15px; visibility: inherit; }
+    #txtLoginName { width: 200px; }
+    
+    
+    /*Footer Area*/
+    #ChatBox 
+    {
+        width: 75%;
+        border: 3px solid #cccccc;
+        padding: 5px;
+        font-family: Tahoma, sans-serif;
+        background-color: #e5fff3;
+        vertical-align: top;
+    }
+    .footer.row input[type='button'] { background-color: #e5fff3; border-color: #e5ffd3; font-size: 1.2em; font-weight: bold; display: inline-block; vertical-align: top; }
+    
+    /*Body Area : Chat Log*/
+    .body.row ul { list-style-type: none; position: absolute; bottom: 0; margin: 0 0 10px 10px; padding: 0; }
+    .body.row ul li { display: block; padding: 10px; background-color: #ddffff; margin: 4px 0; }
+    .body.row ul li .from { font-weight: bold; color: Gray; }
+    .body.row ul li .message { font-weight: bold; }
+    .body.row ul li .seperator { color: Red; }

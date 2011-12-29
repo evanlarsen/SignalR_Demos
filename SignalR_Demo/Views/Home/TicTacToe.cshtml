@@ -1,0 +1,215 @@
+﻿@{
+    ViewBag.Title = "TicTacToe";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section header {
+    <link href='http://fonts.googleapis.com/css?family=Spicy+Rice' rel='stylesheet' type='text/css'>
+    <link href="@Url.Content("~/Content/TicTacToe.css")" rel="stylesheet" type="text/css" />
+    <script src="@Url.Content("~/Scripts/knockout-2.0.0rc.js")" type="text/javascript"></script>
+}
+
+<script type="text/javascript">
+    var TicTacToe = TicTacToe || {};
+
+    TicTacToe.namespace = function (ns_string) {
+        var parts = ns_string.split('.'),
+		    parent = TicTacToe,
+		    i;
+
+        //strip the redundant leading global
+        if (parts[0] === "TicTacToe") {
+            parts = parts.slice(1);
+        }
+
+        for (i = 0; i < parts.length; i += 1) {
+            // create a property if it doesn't exist
+            if (typeof parent[parts[i]] === "undefined") {
+                parent[parts[i]] = {};
+            }
+            parent = parent[parts[i]];
+        }
+        return parent;
+    };
+
+    TicTacToe.namespace('TicTacToe.viewModel');
+    TicTacToe.viewModel = (function () {
+        // private properties
+        var tttHub = $.connection.ticTacToeHub,
+
+        // public properties
+            playerChar = ko.observable(''),
+            message = ko.observable(''),
+            tiles = ko.observableArray(),
+            waitingForOpponent = ko.observable(false),
+            gameOverMessage = ko.observable(''),
+            showGameOverlay = ko.observable(false),
+            isGameOver = ko.observable(false),
+
+        //private methods
+            initialize = function () {
+                message("Finding game to join...");
+
+                // bind events to the hub
+                tttHub.alertMsg = alertMsg;
+                tttHub.beginGame = beginGame;
+                tttHub.setOpponentsMove = setOpponentsMove;
+                tttHub.youWin = youWin;
+                tttHub.youLose = youLose;
+                tttHub.youTied = youTied;
+                tttHub.opponentQuit = opponentQuit;
+
+                // initialize the playing board
+                constructBoard();
+                showGameOverlay(true);
+                waitingForOpponent(false);
+            },
+
+            _tile = function (id, row, col) {
+                this.id = id;
+                this.value = ko.observable('');
+                this.row = row;
+                this.col = col;
+                var xOrO = playerChar();
+
+                this.isClickable = function () {
+                    if (this.value() == '') {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                };
+
+                this.playerMove = function (v) {
+                    if (this.value() === '') {
+                        this.value(xOrO);
+                        TicTacToe.viewModel.playerMove(this.id);
+                    }
+                };
+            },
+
+            constructBoard = function () {
+                tiles.removeAll();
+                tiles.push(new _tile(1, 1, 1));
+                tiles.push(new _tile(2, 1, 2)),
+                tiles.push(new _tile(3, 1, 3));
+                tiles.push(new _tile(4, 2, 1));
+                tiles.push(new _tile(5, 2, 2));
+                tiles.push(new _tile(6, 2, 3));
+                tiles.push(new _tile(7, 3, 1));
+                tiles.push(new _tile(8, 3, 2));
+                tiles.push(new _tile(9, 3, 3));
+            },
+
+            alertMsg = function (msg) {
+                message(msg);
+            },
+
+            beginGame = function (xoro) {
+                playerChar(xoro);
+                constructBoard();
+                showGameOverlay(false);
+                isGameOver(false);
+                if (xoro == 'o') {
+                    waitingForOpponent(true);
+                } else {
+                    waitingForOpponent(false);
+                }
+            },
+
+            setOpponentsMove = function (move) {
+                var index = --move;
+                var tile = tiles()[index];
+                tile.value((playerChar() == 'x' ? 'o' : 'x'));
+                waitingForOpponent(false);
+            },
+
+            youWin = function () {
+                showGameOver("You Win!");
+            },
+
+            youLose = function () {
+                showGameOver("You LOSE!");
+            },
+
+            youTied = function () {
+                showGameOver("Draw Game");
+            },
+
+            opponentQuit = function () {
+                showGameOver("Your opponent quit.");
+            },
+
+            showGameOver = function (gameOverMsg) {
+                message(gameOverMsg);
+                waitingForOpponent(false);
+                gameOverMessage('');
+                showGameOverlay(true);
+                isGameOver(true);
+            },
+
+        // public methods
+            findGame = function () {
+                message("Finding game to join...");
+                tttHub.subscribe();
+            },
+
+            playerMove = function (id) {
+                var selectedTile = tiles()[--id];
+                waitingForOpponent(true);
+                tttHub.makeMove(selectedTile.id);
+            };
+        //end var
+
+        // one-time init procedure
+        initialize();
+
+        //public API
+        return {
+            // data
+            playerChar: playerChar,
+            message: message,
+            tiles: tiles,
+            waitingForOpponent: waitingForOpponent,
+            gameOverMessage: gameOverMessage,
+            showGameOverlay: showGameOverlay,
+            isGameOver: isGameOver,
+
+            // behavior
+            findGame: findGame,
+            playerMove: playerMove
+
+        };
+    } ());
+
+    $(function () {
+        var vm = TicTacToe.viewModel;
+        ko.applyBindings(vm);
+        $.connection.hub.start(function () { vm.findGame(); });
+    });
+</script>
+
+
+<div style="text-align: center; width: 100%;">
+    <h1 class="fontSpicyRice">TIC TAC TOE</h1>
+
+    <span class="header fontSpicyRice" data-bind="text: message"></span>
+</div>
+
+<div id="GameContainer">
+    <div id="GameBoard" class="fontSpicyRice" data-bind="foreach: tiles">
+        <div data-bind="attr: { row: row, col: col, number: id }, text: value, css: { clickable: isClickable() }, click: playerMove.bind($data)"></div>
+    </div>
+
+    <div id="WaitingForOpponentOverlay" data-bind="visible: waitingForOpponent">
+        <span class="fontSpicyRice">Waiting for other player to move...</span>
+    </div>
+
+    <div id="GameOverlay" data-bind="visible: showGameOverlay">
+        <span class="fontSpicyRice" data-bind="text: gameOverMessage"></span>
+    </div>
+</div>
+
+<div id="PlayAgain" data-bind="visible: isGameOver, click: findGame">
+    <a class="fontSpicyRice">Play Again?</a>
+</div>
