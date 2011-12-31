@@ -6,6 +6,10 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Library", "Library", "{251786FA-A748-4017-9C08-8061A5E8F216}"
 	ProjectSection(SolutionItems) = preProject
 		Library\Elmah.dll = Library\Elmah.dll
+		Library\Ninject.dll = Library\Ninject.dll
+		Library\SignalR.dll = Library\SignalR.dll
+		Library\SignalR.Ninject.dll = Library\SignalR.Ninject.dll
+		Library\WebActivator.dll = Library\WebActivator.dll
 	EndProjectSection
 EndProject
 Global
